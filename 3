@@ -1,0 +1,57 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 假设 xlsx 文件名为 'students_info.xlsx'，html 文件名为 'results_ejudge.html'
+# 读取组别信息
+groups_data = pd.read_excel('students_info.xlsx')
+
+# 读取测试结果
+results_data = pd.read_html('results_ejudge.html')[0]
+
+# 清理列名（去除多余的空格）
+results_data.columns = results_data.columns.str.strip()
+groups_data.columns = groups_data.columns.str.strip()
+
+# 合并数据，以 'User' 为关键字段（对应 'login'）
+merged_data = pd.merge(results_data, groups_data, left_on='User', right_on='login')
+
+# 计算每个学生的解题总数
+merged_data['total_solved'] = merged_data.iloc[:, 2:-3].apply(lambda row: (row > 0).sum(), axis=1)
+
+# 任务 1：按组计算平均解题数量
+# (a) 按 faculty 分组，计算平均解题数
+faculty_avg = merged_data.groupby('group_faculty')['total_solved'].mean()
+
+# (b) 按 informatics 分组，计算平均解题数
+informatics_avg = merged_data.groupby('group_out')['total_solved'].mean()
+
+# 任务 2：筛选出符合条件的学生
+# 直接检查 G 和 H 题目的分数是否大于等于 10
+merged_data['G_tests'] = merged_data['G'] >= 10
+merged_data['H_tests'] = merged_data['H'] >= 10
+
+# 筛选满足条件的学生：在 G 或 H 上通过两个或更多测试
+qualified_students = merged_data[(merged_data['G_tests']) | (merged_data['H_tests'])]
+
+# 统计他们的来源和去向组别
+faculty_informatics_distribution = qualified_students.groupby(['group_faculty', 'group_out']).size().reset_index(name='count')
+print("符合条件的学生来自和去向分布：")
+print(faculty_informatics_distribution)
+
+# 绘制任务 1 的分组统计图
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# 绘制按 faculty 分组的图
+axes[0].bar(faculty_avg.index, faculty_avg.values, color='skyblue')
+axes[0].set_title('按 Faculty Group 分组的平均解题数量')
+axes[0].set_xlabel('Faculty Group')
+axes[0].set_ylabel('平均解题数量')
+
+# 绘制按 informatics 分组的图
+axes[1].bar(informatics_avg.index, informatics_avg.values, color='salmon')
+axes[1].set_title('按 Informatics Group 分组的平均解题数量')
+axes[1].set_xlabel('Informatics Group')
+axes[1].set_ylabel('平均解题数量')
+
+plt.tight_layout()
+plt.show()

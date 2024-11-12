@@ -1,0 +1,41 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 假设数据文件名为 'flights.csv'
+data = pd.read_csv('flights.csv')
+
+# 按航空公司（CARGO）分组，统计每家公司航班数、总价格和总重量
+cargo_summary = data.groupby('CARGO').agg(
+    flights_count=('CARGO', 'size'),   # 统计每家公司的航班数
+    total_price=('PRICE', 'sum'),      # 统计每家公司的总货物价格
+    total_weight=('WEIGHT', 'sum')     # 统计每家公司的总货物重量
+).reset_index()
+
+print("每家航空公司航班统计：")
+print(cargo_summary)
+
+# 绘制图表
+fig, ax1 = plt.subplots(figsize=(10, 6))
+
+# 使用柱状图表示每家公司的航班数
+ax1.bar(cargo_summary['CARGO'], cargo_summary['flights_count'], color='skyblue', label='航班数')
+ax1.set_xlabel('航空公司')
+ax1.set_ylabel('航班数', color='skyblue')
+ax1.tick_params(axis='y', labelcolor='skyblue')
+
+# 在同一个图上添加折线图表示总价格和总重量
+ax2 = ax1.twinx()
+ax2.plot(cargo_summary['CARGO'], cargo_summary['total_price'], color='green', marker='o', label='总价格')
+ax2.set_ylabel('总价格', color='green')
+ax2.tick_params(axis='y', labelcolor='green')
+
+ax3 = ax1.twinx()
+ax3.spines['right'].set_position(('outward', 60))  # 让重量曲线右移，便于区分
+ax3.plot(cargo_summary['CARGO'], cargo_summary['total_weight'], color='red', marker='x', label='总重量')
+ax3.set_ylabel('总重量', color='red')
+ax3.tick_params(axis='y', labelcolor='red')
+
+# 添加图例
+fig.legend(loc='upper left', bbox_to_anchor=(0.1,0.9))
+plt.title('每家航空公司航班数、总价格和总重量')
+plt.show()

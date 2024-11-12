@@ -1,0 +1,13 @@
+import pandas as pd
+
+# 将数据加载到 pandas 数据框中
+data = pd.read_csv('transactions.csv')
+
+# 任务1：找到状态为 "OK" 的三笔最大金额支付
+A = data[data['STATUS'] == 'OK'].nlargest(3, 'SUM')
+print("三笔最大金额支付（状态为 OK）：")
+print(A)
+
+# 任务2：计算支付给 "Umbrella, Inc." 的总金额（状态为 OK）
+B = data[(data['STATUS'] == 'OK') & (data['CONTRACTOR'] == 'Umbrella, Inc.')]['SUM'].sum()
+print(f"支付给 Umbrella, Inc. 的总金额（状态为 OK）：{B}")
